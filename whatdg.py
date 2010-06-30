@@ -316,8 +316,12 @@ def build_release(data):
 	print 'Options: '
 	print '[1] Copy to clipboard'
 	print '[2] Save to file ' + title[0] + '.txt'
-	print '[3] Quit
-	
+	print '[3] Do nothing\n\n'
+	sel = raw_input( 'Selection [0] : ' )
+	if(len(sel) == 0 || sel == 0):
+		import subprocess
+		xsel_proc = subprocess.Popen(['xsel', '-pi'], stdin = subprocess.PIPE)
+		xsel_proc.communicate(output)
 
 
 if(len(sys.argv) > 1):
