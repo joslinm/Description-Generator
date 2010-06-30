@@ -1,7 +1,5 @@
 #description generator
 
-
-from lxml import etree
 from xml.dom import minidom 
 import urllib2, gzip, cStringIO, os, sys
  
