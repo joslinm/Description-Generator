@@ -1,13 +1,5 @@
-#what/waffles description maker
-#API KEY: 06a5e5c024
-#tell user to get their own
-#find artist/album
-#fetch
-#show results
-#pick one
-#create the description
-#use urllib for http;
-#use lxml import etree for xml
+#description generator
+
 
 from lxml import etree
 from xml.dom import minidom 
