@@ -24,7 +24,6 @@ def initialize():
 		f = open('settings.txt', 'r')
 		api = f.readline()
 		api = str.split(api, ':')[1]
-		print "api = " + api
 	else :
 		f = open('settings.txt', 'w')
 		f.write('API KEY :<Please Insert Yours Here>\n')
@@ -52,7 +51,7 @@ def initialize():
 		print("**Please fill out the settings.txt API key and restart")
 		sys.exit()
 def disc_request(url):
-	print url;
+	#print url;
 	request = urllib2.Request(url)
 	request.add_header('Accept-Encoding', 'gzip')  
 	response = urllib2.urlopen(request)  
@@ -238,7 +237,6 @@ def get_track_list(node):
 			if(skip == 1):
 				skip = 0
 			else:
-				print("am I ever in else?!?!")
 				content.append([[position, title, duration]])
 	content.remove(['position', 'title', 'duration']) #remove initial declaration
 	return content
@@ -348,9 +346,7 @@ def build_release(data):
 
 if(len(sys.argv) > 1):
 	for x in sys.argv:
-		if(uri == 'set'):
-			uri = x
-		elif(x[0] != '-'):
+		if(x[0] != '-'):
 		 	if(search[1] == 'release'):
 				try:
 					i_search  = int(x)
@@ -365,7 +361,9 @@ if(len(sys.argv) > 1):
 		elif(x == 'exact'):
 		 	exact = 1
 		elif(x == '-url'):
-		 	uri = 'set'
+		 	if(len(i_search) >= 0):
+					i_search = pull_release_id_from_user_url(i_search)
+					search[1] = 'release'
 		elif(x == '-release'):
 		 	search[1] = 'release'
 		elif(x == '-label'):
