@@ -253,7 +253,7 @@ def build_release(data):
 	released = get_snippet(node, 'released')
 	tracks = get_track_list(node)
 	
-	f = open("settings.txt", 'rw')
+	f = open("settings.txt", 'r')
 	
 	template = f.readlines()
 	variable = 0
