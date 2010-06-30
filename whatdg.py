@@ -14,7 +14,7 @@ from xml.dom import minidom
 import urllib2, gzip, cStringIO, os, sys
  
 
-api = '06a5e5c024'
+api = ''
 concat = '+'		#used to implode a string below
 search = ["99", 'all']	#[0] = query [1] = type
 i_search = None; 	#Internal search if needed
@@ -314,14 +314,14 @@ def build_release(data):
 						output += a
 	print output
 	print 'Options: '
-	print '[1] Copy to clipboard'
-	print '[2] Save to file ' + title[0] + '.txt'
-	print '[3] Do nothing\n\n'
+	print '[0] Save to file ' + title[0] + '.txt'
+	print '[1] Do nothing\n\n'
 	sel = raw_input( 'Selection [0] : ' )
-	if(len(sel) == 0 || sel == 0):
-		import subprocess
-		xsel_proc = subprocess.Popen(['xsel', '-pi'], stdin = subprocess.PIPE)
-		xsel_proc.communicate(output)
+	if(len(sel) == 0 or sel == 0):
+		f = open(title[0] + '.txt', 'w')
+		f.write(output.encode('latin-1'))
+		f.flush()
+		f.close()
 
 
 if(len(sys.argv) > 1):
