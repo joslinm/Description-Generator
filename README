@@ -7,3 +7,14 @@
 //Released...			%r
 //Track Listing...		%l
 //Genre(s)...			%g
+
+The switches you can use are as follows:
+-s...		summary of each release
+-exact...	only show exact matches
+-url...		pulls the release information immediately. place *AFTER* a release url
+-release...	this will search for the release. *MUST* be the ID# of the release. 
+-artist...	this will search for artists using your given query. place anywhere
+-label...	this will search for labels using your given query. place anywhere
+
+When choosing in the search menu, you can type a FILTER and bring those results that match FILTER
+to the top

@@ -19,10 +19,12 @@ exact = 0
 
 
 def initialize(): 
+	global api
 	if(os.path.exists('settings.txt')):
 		f = open('settings.txt', 'r')
 		api = f.readline()
 		api = str.split(api, ':')[1]
+		print "api = " + api
 	else :
 		f = open('settings.txt', 'w')
 		f.write('API KEY :<Please Insert Yours Here>\n')
@@ -197,26 +199,47 @@ def get_snippet(node, tag):
 def get_track_list(node):
 	content = [['position', 'title', 'duration']]
 	reflist = node.getElementsByTagName('track')
-	
+	skip = 0
 	if(len(reflist) > 0):
 		for x in reflist: 
 			x.toxml()
+			
 			reflist = x.getElementsByTagName('position')
-			if(reflist > 0):
-				position = reflist[0].firstChild.data
+			if(reflist > 0 and reflist[0].firstChild != None):
+				try:
+					node = reflist[0]
+					position = node.firstChild.data
+				except Exception: 
+					position = ''
 			else:
-				position = '??'
+				position = ''
+				
+				
 			reflist = x.getElementsByTagName('title')
-			if(reflist > 0):
-				title = reflist[0].firstChild.data
+			if(reflist > 0 and reflist[0].firstChild != None):
+				try:
+					node = reflist[0]
+					title = node.firstChild.data
+				except:
+					title = ''
 			else:
-				title = '??'
+				title = ''
+				
 			reflist = x.getElementsByTagName('duration')
-			if(reflist > 0):
-				duration = reflist[0].firstChild.data
+			if(reflist > 0 and reflist[0].firstChild != None):
+				try:
+					node = reflist[0]
+					duration = node.firstChild.data
+				except:
+					duration = ''
 			else:
-				duration = '??'
-			content.append([[position, title, duration]])
+				duration = ''
+				
+			if(skip == 1):
+				skip = 0
+			else:
+				print("am I ever in else?!?!")
+				content.append([[position, title, duration]])
 	content.remove(['position', 'title', 'duration']) #remove initial declaration
 	return content
 
@@ -289,8 +312,15 @@ def build_release(data):
 								output += ' , '
 					elif(a == 'l'):
 						innercounter = len(tracks)
-						for x in tracks: 
-							output += x[0][0] + '.) ' + x[0][1] + ' ['+x[0][2]+']\n'
+						for x in tracks:
+							if(x[0][0] != ''):
+								output += x[0][0] + '.) '
+							if(x[0][1] != ''):
+								output += x[0][1]
+							if(x[0][2] != ''):
+								output += ' ['+x[0][2]+']\n'
+							if(not output.endswith('\n')):
+								output += '\n'
 					elif(a == 'g'):
 						innercounter = len(genres)
 						for x in genres: 
@@ -342,9 +372,10 @@ if(len(sys.argv) > 1):
 		 	search[1] = 'label'
 		elif(x == '-artist'):
 		 	search[1] = 'artist'
-		 	
+
+initialize()	 	
 while(search[0] != "-99"): 
-	initialize()
+	
 	#Preliminary checks 
 	#-------------------------------------------------------------------------------------------------
 	if(uri == 'set'):
@@ -479,6 +510,7 @@ while(search[0] != "-99"):
 		build_release(node)
 		i_search = None
 		uri = None
+		search[1] = 'all'
 	else:
 		print 'Discogs returned an Unknown XML file'
 		print doc_type
