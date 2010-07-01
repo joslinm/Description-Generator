@@ -49,12 +49,16 @@ def initialize():
 		print("**Please fill out the settings.txt API key and restart")
 		sys.exit()
 def disc_request(url):
-	#print url;
+	print url;
+	url = url.strip('+')
 	request = urllib2.Request(url)
 	request.add_header('Accept-Encoding', 'gzip')  
 	response = urllib2.urlopen(request)  
-	data = response.read()  
-	unzipped_data = gzip.GzipFile(fileobj = cStringIO.StringIO(data)).read()
+	data = response.read() 
+	try:
+		unzipped_data = gzip.GzipFile(fileobj = cStringIO.StringIO(data)).read()
+	except:
+		unzipped_data = data
 	xmldoc = minidom.parseString(unzipped_data)
 	return xmldoc
 	
@@ -403,18 +407,33 @@ while(search[0] != "-99"):
 					search[1] = 'release'
 			else:
 				implode += x + '+'
-	if(i_search != None):
+		
+	if(i_search is not None):
+		print 'inside..'
 		search[0] = i_search
-		if(search[1] != 'release'):
-			explode = str.split(search[0], ' ')
-			implode = concat.join(explode)
-		else:
+		
+		print search[1]
+		if(search[1] == 'artist'):
+			print search[0]
+			if(search[0].startswith('the')):
+				split = str.split(search[0], ' ')
+				innercounter = 0
+				new_s = ''
+				for x in split: 
+					if (innercounter > 0):
+						new_s += x + ' '
+				new_s += ', The'
+				print("Did you mean " + new_s + " ?")
+		if(search[1] == 'release'):
 			try:
 				int(search[0])
 				implode = search[0]
 			except (TypeError, ValueError):
 				print "**You cannot search releases \n**Please use the release ID number in the future"
 				search[1] = 'all'
+		else:
+			explode = str.split(search[0], ' ')
+			implode = concat.join(explode)
 	#--------------------------------------
 		
 	if(search[0] == '-99'):
