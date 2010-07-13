@@ -16,9 +16,10 @@ def http_query(base, args):
     return url
 
 class DiscogQueryType:
+    all = 0
     artist = 1
     release = 2
-
+    label = 3
 
 class DiscogQuery:
     '''
@@ -31,9 +32,22 @@ class DiscogQuery:
         DiscogQuery initializer.
         Takes a query type (artist, release, ...) and a string.
         '''
-        self.query_str = query_str
+        self.query_str = str(query_str)
         self.type = type
-        self.api_key = api
+        self.args = {'f':'xml', 'api_key':api}
+        if self.type is DiscogQueryType.all: 
+            self.url = base_url + '/search'
+            self.args['type'] = 'all'
+            self.args['q'] = self.query_str
+        elif self.type is DiscogQueryType.artist: 
+            self.url = '/'.join((base_url, 'artist', self.query_str))
+        elif self.type is DiscogQueryType.release: 
+            self.url = '/'.join((base_url, 'release', self.query_str))
+        elif self.type is DiscogQueryType.label: 
+            self.url = '/'.join((base_url, 'label', self.query_str))
+        else:
+            raise Exception("Bad DiscogQueryType for " + str(query_str))
+        self.query = http_query(self.url, self.args)
 
     def execute(self):
         '''
