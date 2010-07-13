@@ -3,6 +3,12 @@
 from xml.dom import minidom 
 import urllib2, gzip, cStringIO, os, sys
 
+query_types = {
+        'all':1,
+        'artist':1,
+        'release':1,
+        'label':1, }
+
 def http_query(base, args):
     '''
     Construct an HTTP query with a base url and a dict of arguments.
@@ -15,56 +21,11 @@ def http_query(base, args):
         url += '&'.join(arg_strings)
     return url
 
-class DiscogQueryType:
-    all = 0
-    artist = 1
-    release = 2
-    label = 3
-
-class DiscogQuery:
-    '''
-    An object that represents a query to the discog server
-    '''
-    base_url = 'http://www.discogs.com'
-
-    def init(self, type, query_str, api):
-        '''
-        DiscogQuery initializer.
-        Takes a query type (artist, release, ...) and a string.
-        '''
-        self.query_str = str(query_str)
-        self.type = type
-        self.args = {'f':'xml', 'api_key':api}
-        if self.type is DiscogQueryType.all: 
-            self.url = base_url + '/search'
-            self.args['type'] = 'all'
-            self.args['q'] = self.query_str
-        elif self.type is DiscogQueryType.artist: 
-            self.url = '/'.join((base_url, 'artist', self.query_str))
-        elif self.type is DiscogQueryType.release: 
-            self.url = '/'.join((base_url, 'release', self.query_str))
-        elif self.type is DiscogQueryType.label: 
-            self.url = '/'.join((base_url, 'label', self.query_str))
-        else:
-            raise Exception("Bad DiscogQueryType for " + str(query_str))
-        self.query = http_query(self.url, self.args)
-
-    def execute(self):
-        '''
-        Execute the query and return the results.
-        '''
-        return None
-
-class WhatDescGen:
-    '''
-    An object that will 
-    '''
-    pass
-
-
 api = ''
 concat = '+'        #used to implode a string below
 search = ["99", 'all']  #[0] = query [1] = type
+search_string = '99'
+search_type = 'all'
 i_search = None;    #Internal search if needed
 reflist = None      
 uri = None
@@ -180,9 +141,9 @@ def search_menu(reflist, iterator):
                 title = node[0].firstChild.data; #data
                 print '[' + str(counter) + '] ' + title + ' [' + rtype + '] '
                 if(nodename == 'result' and rtype == 'release' and summary):
-                    print '>->->Summary------------------------------------'
+                    print '>->->Summary' + '-'*40
                     print s_msg
-                    print '------------------------------------------------\n'
+                    print '------------' + '-'*40 + '\n'
                 counter += 1
         
         if(counter < reflist.length - 1):
@@ -233,79 +194,91 @@ def get_release_uri(node):
 
 def get_snippet(node, tag):
     content = ['temporary']
+
     reflist = node.getElementsByTagName(tag)
     
-    if(reflist != None):
-        if(len(reflist) > 0):
-            if(tag == 'label' or tag == 'format'): #info is in attributes
-                for x in reflist: 
-                    title = x.attributes['name'].value
-                    #print tag + " Name: " + title
-                    content.append(title)
-            elif(tag == 'artist'):
-                for x in reflist:
-                    if(x.parentNode.nodeName != 'extraartists'):
-                        title = x.firstChild.firstChild.data
-                        #print tag + " Name: " + title
-                        content.append(title)
-            elif(tag == 'title'): #Only get the first title
-                title = reflist[0].firstChild.data
+    if reflist is None: return None
+
+    if(len(reflist) > 0):
+        if(tag == 'label' or tag == 'format'): 
+            # Info is in attributes.
+            for x in reflist:
+                title = x.attributes['name'].value
                 #print tag + " Name: " + title
                 content.append(title)
-            else:
-                for x in reflist:
-                    title = x.firstChild.data
+        elif(tag == 'artist'):
+            for x in reflist:
+                if(x.parentNode.nodeName != 'extraartists'):
+                    title = x.firstChild.firstChild.data
                     #print tag + " Name: " + title
                     content.append(title)
-    
-        content.remove('temporary')#remove initial declaration
-        return content
-    else:
-        return None
+        elif(tag == 'title'): 
+            # Only get the first title
+            title = reflist[0].firstChild.data
+            #print tag + " Name: " + title
+            content.append(title)
+        else:
+            for x in reflist:
+                title = x.firstChild.data
+                #print tag + " Name: " + title
+                content.append(title)
+
+    # Remove initial declaration.
+    content[0:1] = []
+    return content
+
+def get_data_of_first_child_for_tag(node, tag):
+    '''
+    Return the data from the first child of the first element of node
+    with the given tag.
+    '''
+    # Get all the track number.
+    reflist = node.getElementsByTagName(tag)
+
+    if len(reflist) <= 0: return ''
+
+    element = reflist[0]
+
+    if element.firstChild is None: return ''
+
+    # Attempt to extract the position from the node.
+    try: return reflist[0].firstChild.data
+    except Exception: return ''
+
 def get_track_list(node):
     content = [['position', 'title', 'duration']]
+
+    # Get all track xml elements.
     reflist = node.getElementsByTagName('track')
     skip = 0
+
+    # If there is at least one track in the reflist.
     if(len(reflist) > 0):
+
+        # Iterate over tracks.
         for x in reflist: 
             x.toxml()
             
-            reflist = x.getElementsByTagName('position')
-            if(reflist > 0 and reflist[0].firstChild != None):
-                try:
-                    node = reflist[0]
-                    position = node.firstChild.data
-                except Exception: 
-                    position = ''
-            else:
-                position = ''
+            position = get_data_of_first_child_for_tag(x,'position')
                 
+            # Get the track title.
+            title = get_data_of_first_child_for_tag(x, 'title')
                 
-            reflist = x.getElementsByTagName('title')
-            if(reflist > 0 and reflist[0].firstChild != None):
-                try:
-                    node = reflist[0]
-                    title = node.firstChild.data
-                except:
-                    title = ''
-            else:
-                title = ''
-                
-            reflist = x.getElementsByTagName('duration')
-            if(reflist > 0 and reflist[0].firstChild != None):
-                try:
-                    node = reflist[0]
-                    duration = node.firstChild.data
-                except:
-                    duration = ''
-            else:
-                duration = ''
-                
-            if(skip == 1):
+            # Get the track duration.
+            duration = get_data_of_first_child_for_tag(x, 'duration')
+            
+            # Skip the track if there was an error or something.
+            if(skip == 1): 
                 skip = 0
-            else:
-                content.append([[position, title, duration]])
-    content.remove(['position', 'title', 'duration']) #remove initial declaration
+                continue
+
+            # Append the track information to the tracklist.
+            content.append([[position, title, duration]])
+
+    # Remove initial declaration via a splice.
+    content[0:1] = []
+
+    # Return the tracklist.
     return content
 
 def build_release(data):
@@ -447,12 +420,12 @@ if(len(sys.argv) > 1):
     for x in sys.argv:
         # I don't really know what this paragraph is for.
         if(x[0] != '-'):
-            if(search[1] == 'release'):
+            if(search_type == 'release'):
                 try: i_search  = int(x)
                 except (TypeError, ValueError):
                     print "**You cannot search releases."
                     print "**Search normally or use the release ID#."
-                    search[1] = 'all'
+                    search_type = 'all'
             i_search = x
 
         # Check summary printing option.
@@ -467,66 +440,66 @@ if(len(sys.argv) > 1):
         elif(x == '-url'):
             if(len(i_search) >= 0):
                     i_search = pull_release_id_from_user_url(i_search)
-                    search[1] = 'release'
+                    search_type = 'release'
 
         # Check for release search option.
         elif(x == '-release'):
-            search[1] = 'release'
+            search_type = 'release'
 
         # Check for label search option.
         elif(x == '-label'):
-            search[1] = 'label'
+            search_type = 'label'
 
         # Check for artist search option.
         elif(x == '-artist'):
-            search[1] = 'artist'
+            search_type = 'artist'
 
 # Read the API key from settings.txt
 initialize()        
 
 
-while(search[0] != "-99"): 
+while(search_string != "-99"): 
     # Do we need the user to specify a URL?
     if(uri == 'set'): uri = raw_input("Enter URL: ")
 
     # Make sure that the search type is set to something
-    if(search[1] == None): search[1] = 'all'
+    if(search_type == None): search_type = 'all'
 
     # If we an internal search is unnecessary, and there is no URL given.
     if(i_search == None and uri == None):
         # Read in a search query.
-        search[0] = raw_input("Search: ")
+        search_string = raw_input("Search: ")
 
         # Split the query into tokens
-        explode = str.split(search[0], ' ')
+        explode = str.split(search_string, ' ')
 
         # Initialize a string for the http query string.
         implode = '' #We'll reconstruct our search query here
         for x in explode:
-            if(x == '-release'): search[1] = 'release'
-            elif(x == '-artist'): search[1] = 'artist'
-            elif(x == '-label'): search[1] = 'label'
+            if(x == '-release'): search_type = 'release'
+            elif(x == '-artist'): search_type = 'artist'
+            elif(x == '-label'): search_type = 'label'
             elif(x == '-exact'): exact = 1
             elif(x == '-s'): summary = 1
             elif(x == '-url'): 
                 if(len(implode) >= 0):
                     i_search = pull_release_id_from_user_url(implode)
-                    search[1] = 'release'
+                    search_type = 'release'
             else: implode += x + '+'
         
     # An internal search is required.
     if(i_search is not None):
         print 'inside..'
-        search[0] = i_search
+        search_string = i_search
         
-        print search[1]
+        print search_type
 
         # If we are searching artists.
-        if(search[1] == 'artist'):
-            print search[0]
+        if(search_type == 'artist'):
+            print search_string
             # Suggest moving the word "The" to the end of artist names.
-            if(search[0].lower().startswith('the')):
-                split = str.split(search[0], ' ')
+            if(search_string.lower().startswith('the')):
+                split = str.split(search_string, ' ')
                 innercounter = 0
                 new_s = ''
                 for x in split: 
@@ -537,22 +510,22 @@ while(search[0] != "-99"):
                 print("Did you mean " + new_s + " ?")
 
         # If we are searching releases.
-        if(search[1] == 'release'):
+        if(search_type == 'release'):
             # Make sure the query is a release ID number (integer).
             try:
-                int(search[0])
-                implode = search[0]
+                int(search_string)
+                implode = search_string
             except (TypeError, ValueError):
                 print "**You cannot search releases \n**Please use the release ID number in the future"
-                search[1] = 'all'
+                search_type = 'all'
 
         # We are searching all entries.
         else:
-            explode = str.split(search[0], ' ')
+            explode = str.split(search_string, ' ')
             implode = concat.join(explode)
 
     # Break if we are unable to make a query.
-    if(search[0] == '-99'): break
+    if(search_string == '-99'): break
     
     # Form a URI if we don't already have one.
     if(uri == None):
@@ -560,19 +533,19 @@ while(search[0] != "-99"):
         discogs_base = 'http://www.discogs.com'
         args_base = {'f':'xml', 'api_key':api}
 
-        if(search[1] == 'all'):
+        if(search_type == 'all'):
             url = discogs_base + '/search'
             args = args_base.copy()
             args['type'] = 'all'
             args['q'] = implode
             uri = http_query(url, args)
-        elif(search[1] == 'artist'):
+        elif(search_type == 'artist'):
             url = '/'.join((discogs_base, 'artist', implode))
             uri = http_query(url, args_base)
-        elif(search[1] == 'label'): 
+        elif(search_type == 'label'): 
             url = '/'.join((discogs_base, 'label', implode))
             uri = http_query(url, args_base)
-        elif(search[1] == 'release'):
+        elif(search_type == 'release'):
             url = '/'.join((discogs_base, 'release', implode))
             uri = http_query(url, args_base)
     
@@ -583,7 +556,7 @@ while(search[0] != "-99"):
     doc_type = xmldoc.firstChild.firstChild.nodeName
     
     # If we are searching all entry types.
-    if(search[1] == 'all'): 
+    if(search_type == 'all'): 
         # If we are looking for exact matches to the query
         if(exact):
             reflist = xmldoc.getElementsByTagName('exactresults')
@@ -621,12 +594,12 @@ while(search[0] != "-99"):
             # If the entry is an artist entry.
             if(rtype == 'artist'):
                 uri = get_artist_uri(uri_node[0])
-                search[1] = 'artist'
+                search_type = 'artist'
 
             # If the entry is a release entry.
             elif(rtype == 'release'):
                 uri = get_release_uri(uri_node[0])
-                search[1] = 'release'
+                search_type = 'release'
 
     # We are not searching all entry types.
     # If the query returned a label document.
@@ -691,7 +664,7 @@ while(search[0] != "-99"):
         
         print "id: " + id_
         i_search = id_
-        search[1] = 'release'
+        search_type = 'release'
         uri = None
 
     # If the query returned a release document.
@@ -705,7 +678,7 @@ while(search[0] != "-99"):
         # Set up for a new search.
         i_search = None
         uri = None
-        search[1] = 'all'
+        search_type = 'all'
 
     # The query returned an unknown document type.
     else:
