@@ -1,7 +1,40 @@
-#description generator
+#!/usr/bin/env python
 
 from xml.dom import minidom 
 import urllib2, gzip, cStringIO, os, sys
+
+class DiscogQueryType:
+    artist = 1
+    release = 2
+
+
+class DiscogQuery:
+    '''
+    An object that represents a query to the discog server
+    '''
+    base_url = 'http://www.discogs.com'
+
+    def init(self, type, query_str, api):
+        '''
+        DiscogQuery initializer.
+        Takes a query type (artist, release, ...) and a string.
+        '''
+        self.query_str = query_str
+        self.type = type
+        self.api_key = api
+
+    def execute(self):
+        '''
+        Execute the query and return the results.
+        '''
+        return None
+
+class WhatDescGen:
+    '''
+    An object that will 
+    '''
+    pass
+
 
 api = ''
 concat = '+'        #used to implode a string below
@@ -20,7 +53,7 @@ def initialize():
     if(os.path.exists('settings.txt')):
         f = open('settings.txt', 'r')
         api = f.readline()
-        api = str.split(api, ':')[1]
+        api = str.split(api, ':')[1].strip()
     else :
         default_settings = (
             'API KEY :<Please Insert Yours Here>',
@@ -147,8 +180,8 @@ def search_menu(reflist, iterator):
 
 def get_artist_uri(node): 
     uri = node.firstChild.data 
-    new_uri = str.split(str(uri), '?')[0] #Get the url until ? is hit
-    (this avoids complications) 
+    #Get the url until ? is hit (this avoids complications) 
+    new_uri = str.split(str(uri), '?')[0] 
     uri =  new_uri + '?f=xml&api_key=' + api
     return uri 
 
@@ -248,6 +281,10 @@ def get_track_list(node):
     return content
 
 def build_release(data):
+    '''
+    Creates a string description of a release described by 'data'. Uses
+    the template found in settings.txt
+    '''
     #First get the artist(s)
     node = data[0]
     node.toxml()
@@ -266,15 +303,20 @@ def build_release(data):
     template = f.readlines()
     variable = 0
     output = ''
+    # Process each template line
     for l in template:
-        if(l.startswith('//') or l.find('API') != -1): #If a comment or API
-            pass #donothing
+        #If a comment or API do nothing
+        if(l.startswith('//') or l.find('API') != -1): 
+             continue
         else:
+            # Iterate over characters in the line.
             for a in l:
                 if(variable):
+                    # Print release title.
                     if(a == 't'):
                         output += title[0]
                         
+                    # Print artists.
                     elif(a == 'a'):
                         innercounter = len(artists)
                         for x in artists: 
@@ -286,6 +328,7 @@ def build_release(data):
                                 innercounter -= 1
                                 if(innercounter > 0):
                                     output += ' , ' 
+                    # Print labels.
                     elif(a == 'x'):
                         innercounter = len(labels)
                         for x in labels: 
@@ -293,6 +336,7 @@ def build_release(data):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
+                    # Print release formats.
                     elif(a == 'f'):
                         innercounter = len(formats)
                         for x in formats: 
@@ -300,6 +344,8 @@ def build_release(data):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
+
+                    # Print release country
                     elif(a == 'c'):
                         innercounter = len(country)
                         for x in country: 
@@ -307,6 +353,8 @@ def build_release(data):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
+
+                    # Print year released.
                     elif(a == 'r'):
                         innercounter = len(released)
                         for x in released: 
@@ -314,6 +362,8 @@ def build_release(data):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
+
+                    # Print tracklist.
                     elif(a == 'l'):
                         innercounter = len(tracks)
                         for x in tracks:
@@ -325,6 +375,8 @@ def build_release(data):
                                 output += ' ['+x[0][2]+']\n'
                             if(not output.endswith('\n')):
                                 output += '\n'
+
+                    # Print genres.
                     elif(a == 'g'):
                         innercounter = len(genres)
                         for x in genres: 
@@ -333,117 +385,148 @@ def build_release(data):
                             if(innercounter > 0):
                                 output += ' , '
                     variable = 0
-                else: #If variable is not set
-                    if(a == '%'):
-                        variable = 1
-                    else:
-                        output += a
+                # If the last character read was not '%'
+                else: 
+                    # Reading the beginning of a variable substitution.
+                    if(a == '%'): variable = 1
+                    # Reading a normal character.
+                    else: output += a
+
+    # Print the release description.
     print output
+
+    # Prompt to save description as text file.
     print 'Options: '
     print '[0] Save to file ' + title[0] + '.txt'
     print '[1] Do nothing\n\n'
+
+    # Read user response.
     sel = raw_input( 'Selection [0] : ' )
+
+    # Save if requested.
     if(len(sel) == 0 or sel == 0):
         f = open(title[0] + '.txt', 'w')
         f.write(output.encode('latin-1'))
         f.flush()
         f.close()
 
+#################
+# MAIN FUNCTION #
+#################
 
+# Process any command line arguments
 if(len(sys.argv) > 1):
     for x in sys.argv:
+        # I don't really know what this paragraph is for.
         if(x[0] != '-'):
             if(search[1] == 'release'):
-                try:
-                    i_search  = int(x)
+                try: i_search  = int(x)
                 except (TypeError, ValueError):
-                    print "**You cannot search releases\n**Please just search normally or use the release indentification number in the future"
-                    i_search = release
+                    print "**You cannot search releases."
+                    print "**Search normally or use the release ID#."
                     search[1] = 'all'
-            else:
-                i_search = x
+            i_search = x
+
+        # Check summary printing option.
         elif(x == '-s'):
             summary = 1
-        elif(x == 'exact'):
+
+        # Check exact query matching option.
+        elif(x == '-exact'):
             exact = 1
+
+        # Check release url specification.
         elif(x == '-url'):
             if(len(i_search) >= 0):
                     i_search = pull_release_id_from_user_url(i_search)
                     search[1] = 'release'
+
+        # Check for release search option.
         elif(x == '-release'):
             search[1] = 'release'
+
+        # Check for label search option.
         elif(x == '-label'):
             search[1] = 'label'
+
+        # Check for artist search option.
         elif(x == '-artist'):
             search[1] = 'artist'
 
+# Read the API key from settings.txt
 initialize()        
+
+
 while(search[0] != "-99"): 
-    
-    #Preliminary checks 
-    #-------------------------------------------------------------------------------------------------
-    if(uri == 'set'):
-        uri = raw_input("Enter URL: ")
-    if(search[1] == None):
-        search[1] = 'all'
-    
-    #User input_ if needed
-    #------------------------------------
+    # Do we need the user to specify a URL?
+    if(uri == 'set'): uri = raw_input("Enter URL: ")
+
+    # Make sure that the search type is set to something
+    if(search[1] == None): search[1] = 'all'
+
+    # If we an internal search is unnecessary, and there is no URL given.
     if(i_search == None and uri == None):
+        # Read in a search query.
         search[0] = raw_input("Search: ")
+
+        # Split the query into tokens
         explode = str.split(search[0], ' ')
+
+        # Initialize a string for the http query string.
         implode = '' #We'll reconstruct our search query here
         for x in explode:
-            if(x == '-release'):
-                print "i set release"
-                search[1] = 'release'
-            elif(x == '-artist'):
-                search[1] = 'artist'
-            elif(x == '-label'):
-                search[1] = 'label'
-            elif(x == '-exact'):
-                exact = 1
-            elif(x == '-s'):
-                summary = 1
-            elif(x == '-url'):
+            if(x == '-release'): search[1] = 'release'
+            elif(x == '-artist'): search[1] = 'artist'
+            elif(x == '-label'): search[1] = 'label'
+            elif(x == '-exact'): exact = 1
+            elif(x == '-s'): summary = 1
+            elif(x == '-url'): 
                 if(len(implode) >= 0):
                     i_search = pull_release_id_from_user_url(implode)
                     search[1] = 'release'
-            else:
-                implode += x + '+'
+            else: implode += x + '+'
         
+    # An internal search is required.
     if(i_search is not None):
         print 'inside..'
         search[0] = i_search
         
         print search[1]
+
+        # If we are searching artists.
         if(search[1] == 'artist'):
             print search[0]
-            if(search[0].startswith('the')):
+            # Suggest moving the word "The" to the end of artist names.
+            if(search[0].lower().startswith('the')):
                 split = str.split(search[0], ' ')
                 innercounter = 0
                 new_s = ''
                 for x in split: 
                     if (innercounter > 0):
                         new_s += x + ' '
+                    innercounter += 1
                 new_s += ', The'
                 print("Did you mean " + new_s + " ?")
+
+        # If we are searching releases.
         if(search[1] == 'release'):
+            # Make sure the query is a release ID number (integer).
             try:
                 int(search[0])
                 implode = search[0]
             except (TypeError, ValueError):
                 print "**You cannot search releases \n**Please use the release ID number in the future"
                 search[1] = 'all'
+
+        # We are searching all entries.
         else:
             explode = str.split(search[0], ' ')
             implode = concat.join(explode)
-    #--------------------------------------
-        
-    if(search[0] == '-99'):
-        break
-    #--------------------------------------------------------------------------------------------------------
+
+    # Break if we are unable to make a query.
+    if(search[0] == '-99'): break
     
+    # Form a URI if we don't already have one.
     if(uri == None):
         if(search[1] == 'all'):
             uri = 'http://www.discogs.com/search?type=all&q=' + implode + '&f=xml&api_key=' + api
@@ -454,44 +537,75 @@ while(search[0] != "-99"):
         elif(search[1] == 'release'):
             uri = 'http://www.discogs.com/release/' + implode + '?f=xml&api_key=' + api
     
+    # Get the query results.
     xmldoc = disc_request(uri)
+
+    # Get the type of document returned from the query.
     doc_type = xmldoc.firstChild.firstChild.nodeName
     
+    # If we are searching all entry types.
     if(search[1] == 'all'): 
+        # If we are looking for exact matches to the query
         if(exact):
             reflist = xmldoc.getElementsByTagName('exactresults')
             if(reflist < 1): 
                 reflist = xmldoc.getElementsByTagName('result')
             node = reflist[0]
             node.toxml()
-            reflist = node.getElementsByTagName('result') #This is the parent node to look in (result)
+            # This is the parent node to look in (result)
+            reflist = node.getElementsByTagName('result') 
+
+        # If we are looking for any query matches, use all results.
         else:
             reflist = xmldoc.getElementsByTagName('result')
             
-            
+        # If the query returned no results
         if(reflist.length < 1):
             print('nothing')
             i_search = None
             uri = None
+
+        # Process results returned from the query.
         else:
-            selected = search_menu(reflist, 'title') #This tells the function to show a menu using the TITLE as options
+            # Tell the function to show a menu using the TITLE as options.
+            selected = search_menu(reflist, 'title') 
+
+            # Select the next entry.
             node = reflist[int(selected)]
+
+            # Get the type of the entry.
             rtype = node.attributes['type'].value
             node.toxml()
+            # Get URIs attached to the result entry.
             uri_node = node.getElementsByTagName('uri')
+
+            # If the entry is an artist entry.
             if(rtype == 'artist'):
                 uri = get_artist_uri(uri_node[0])
                 search[1] = 'artist'
+
+            # If the entry is a release entry.
             elif(rtype == 'release'):
                 uri = get_release_uri(uri_node[0])
                 search[1] = 'release'
+
+    # We are not searching all entry types.
+    # If the query returned a label document.
     elif(doc_type == 'label'):
+
+        # Get the releases from the label.
         reflist = xmldoc.getElementsByTagName('release')
+
         if(reflist.length < 1):
             print('nothing')
         else:
+            # Get the select a title from the list of releases.
             selected = search_menu(reflist, 'title')
+
+            # Get the title of the selected release.
             title = reflist[int(selected)].getElementsByTagName('title')
+
+            # Try to set up an internal search for the title.
             if(len(title) > 0):
                 i_search = title
                 uri = None
@@ -499,37 +613,62 @@ while(search[0] != "-99"):
                 print "Can't use this data to process your request"
                 i_search = None
                 uri = None
+
+    # If the query returned an artist document.
     elif(doc_type == 'artist'):
+        # Get a list of the returned artists.
         reflist = xmldoc.getElementsByTagName('artist')
         if(reflist.length < 1):
             print('nothing')
             i_search = None
             uri = None
         elif(reflist.length > 1):
+            # Get a selected artist from the list.
             selected = search_menu(reflist, 'name')
+
+            # Handle the selected artist node.
             node = reflist[int(selected)]
+
+            # Get the artist page URI.
             uri = get_artist_uri(uri_node)
-            xmldoc = disc_request(uri) #this will return the artist page
+
+            # Retrieve the artist URI.
+            xmldoc = disc_request(uri)
+
+            # Select the artist
             reflist = xmldoc.getElementsByTagName('artist')
             node = reflist[0]
         else:
             node = reflist[0]
         
-        
+        # Get the artist releases.
         reflist = xmldoc.getElementsByTagName('release')
+
+        # Have the user select a title.
         selection = search_menu(reflist, 'title')
+
+        # Get the release ID number of the chosen release.
         id_ = reflist[int(selected)].attributes['id'].value
         
         print "id: " + id_
         i_search = id_
         search[1] = 'release'
         uri = None
+
+    # If the query returned a release document.
     elif(doc_type == 'release'):
+        # Get the release node.
         node = xmldoc.getElementsByTagName('release')
+
+        # Build and print the release description.
         build_release(node)
+
+        # Set up for a new search.
         i_search = None
         uri = None
         search[1] = 'all'
+
+    # The query returned an unknown document type.
     else:
         print 'Discogs returned an Unknown XML file'
         print doc_type
