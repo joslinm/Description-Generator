@@ -3,6 +3,18 @@
 from xml.dom import minidom 
 import urllib2, gzip, cStringIO, os, sys
 
+def http_query(base, args):
+    '''
+    Construct an HTTP query with a base url and a dict of arguments.
+    '''
+    url = base
+    arg_names = args.keys()
+    if len(arg_names) > 0:
+        url += '?'
+        arg_strings = [''.join((x,'=',args[x])) for x in arg_names]
+        url += '&'.join(arg_strings)
+    return url
+
 class DiscogQueryType:
     artist = 1
     release = 2
@@ -201,7 +213,9 @@ def get_release_uri(node):
         counter += 1
         _id = splut[counter + 1]
     
-    return ('http://www.discogs.com/release/' + _id + '?f=xml&api_key=' + api)
+    args = {'f':'xml', 'api_key':api}
+    url = 'http://www.discogs.com/release/' + _id
+    return http_query(url, args)
 
 def get_snippet(node, tag):
     content = ['temporary']
@@ -528,14 +542,25 @@ while(search[0] != "-99"):
     
     # Form a URI if we don't already have one.
     if(uri == None):
+
+        discogs_base = 'http://www.discogs.com'
+        args_base = {'f':'xml', 'api_key':api}
+
         if(search[1] == 'all'):
-            uri = 'http://www.discogs.com/search?type=all&q=' + implode + '&f=xml&api_key=' + api
+            url = discogs_base + '/search'
+            args = args_base.copy()
+            args['type'] = 'all'
+            args['q'] = implode
+            uri = http_query(url, args)
         elif(search[1] == 'artist'):
-            uri = 'http://www.discogs.com/artist/' + implode + '?f=xml&api_key=' + api 
+            url = '/'.join((discogs_base, 'artist', implode))
+            uri = http_query(url, args_base)
         elif(search[1] == 'label'): 
-            uri = 'http://www.discogs.com/label/' + implode + '?f=xml&api_key=' + api
+            url = '/'.join((discogs_base, 'label', implode))
+            uri = http_query(url, args_base)
         elif(search[1] == 'release'):
-            uri = 'http://www.discogs.com/release/' + implode + '?f=xml&api_key=' + api
+            url = '/'.join((discogs_base, 'release', implode))
+            uri = http_query(url, args_base)
     
     # Get the query results.
     xmldoc = disc_request(uri)
