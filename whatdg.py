@@ -23,7 +23,6 @@ def http_query(base, args):
 
 api = ''
 concat = '+'        #used to implode a string below
-search = ["99", 'all']  #[0] = query [1] = type
 search_string = '99'
 search_type = 'all'
 i_search = None;    #Internal search if needed
@@ -74,29 +73,52 @@ def initialize():
 def disc_request(url):
     print url;
     url = url.strip('+')
+
+    # Form the http request.
     request = urllib2.Request(url)
     request.add_header('Accept-Encoding', 'gzip')  
+
+    # Send the request.
     response = urllib2.urlopen(request)  
+
+    # Read the reply.
     data = response.read() 
+
+    # Extract the response.
     try:
-        unzipped_data = gzip.GzipFile(fileobj = cStringIO.StringIO(data)).read()
+        data_stream = cStringIO.StringIO(data)
+        zipped_data = gzip.GzipFile(fileobj = data_stream)
+        unzipped_data = zipped_data.read()
     except:
         unzipped_data = data
+
+    # Parse the response as xml, and return the results.
     xmldoc = minidom.parseString(unzipped_data)
     return xmldoc
     
 
 def search_menu(reflist, iterator):
+    '''
+    Let the user browse a list of search results.
+    '''
+
+    # Initialize state variables.
     input_ = '-1'
     counter = 0
     filter_ = None
+
+    # Output one page of results at a time.
     while(input_ == '-1'):
+
+        # Filter results containing a substring filter_.
         if(filter_ is not None):
             innercounter = 0
             newlist = [-1]
             filter_ = filter_.lower()
             
             print filter_
+
+            # Loop over the whole list of results.
             for x in reflist:
                 x.toxml()
                 node = x.getElementsByTagName(iterator)
@@ -104,8 +126,8 @@ def search_menu(reflist, iterator):
                 title = title.lower()
                 success = (title).find(filter_)
                 
-                if(success > -1): #found
-                    newlist.insert(0, reflist.index(x))
+                # Add the result if it matches the filter.
+                if(success > -1): newlist[0:0] = reflist.index(x)
                     
                 #print title + " == " + str(success)
                 #raw_input('success = ' + str(success))
@@ -113,25 +135,34 @@ def search_menu(reflist, iterator):
             newlist.remove(-1)
             newlist.reverse()
             
-            for x in newlist:
-                #print x
-                reflist.insert(0, reflist[x])
-                reflist.remove(reflist[x])
-                
+            # Move matches to the beginning of the search results.
+            for i in newlist:
+                #print i
+                try:
+                    match = reflist[i]
+                    reflist[i:i+1] = []
+                    reflist[0:0] = [match]
+                except: pass
+
+            # Reset the counter to the beginning of the matches.
             counter = 0
+
+        # Set the default response.
         default = counter
-        for x in reflist[counter:counter+9] :
-            nodename = x.nodeName
-            if(x.nodeName == 'result'):
+
+        # Print the next page.
+        for x in reflist[counter:counter+9]:
+            node_name = x.nodeName
+            if(node_name == 'result'):
                 rtype = x.attributes['type'].value
                 if(summary and rtype == 'release'):
                     y = x
                     y.toxml()
                     s_node = y.getElementsByTagName('summary')
                     s_msg = s_node[0].firstChild.data
-            elif(x.nodeName == 'artist'):
+            elif(node_name == 'artist'):
                 rtype = 'artist'
-            elif(x.nodeName == 'release'):
+            elif(node_name == 'release'):
                 rtype = 'release'
             
             x.toxml()
