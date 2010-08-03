@@ -4,10 +4,21 @@ from xml.dom import minidom
 import urllib2, gzip, cStringIO, os, sys
 
 query_types = {
-        'all':1,
-        'artist':1,
-        'release':1,
-        'label':1, }
+    'all':1,
+    'artist':1,
+    'release':1,
+    'label':1, }
+
+def try_to_prompt(prompt_text):
+    '''
+    Prompt the user for input. 
+    If EOF is found, then the program will exit.
+    '''
+    try:
+        return raw_input(prompt_text)
+    except EOFError:
+        print
+        exit(0)
 
 def http_query(base, args):
     '''
@@ -127,7 +138,7 @@ def search_menu(reflist, iterator):
                 success = (title).find(filter_)
                 
                 # Add the result if it matches the filter.
-                if(success > -1): newlist[0:0] = reflist.index(x)
+                if(success > -1): newlist[0:0] = [reflist.index(x)]
                     
                 #print title + " == " + str(success)
                 #raw_input('success = ' + str(success))
@@ -171,7 +182,7 @@ def search_menu(reflist, iterator):
             if(node.length > 0):
                 title = node[0].firstChild.data; #data
                 print '[' + str(counter) + '] ' + title + ' [' + rtype + '] '
-                if(nodename == 'result' and rtype == 'release' and summary):
+                if(node_name == 'result' and rtype == 'release' and summary):
                     print '>->->Summary' + '-'*40
                     print s_msg
                     print '------------' + '-'*40 + '\n'
@@ -183,7 +194,9 @@ def search_menu(reflist, iterator):
             elif(x.nodeName == 'result'):
                 print 'End Of Search Results'
 
-        input_ = raw_input('\n\nOption [' + str(default) + '] or Filter: ');
+        input_ = try_to_prompt(
+                ''.join((
+                    '\n\nOption [', str(default),'] or Filter: ')));
         if(len(input_) == 0):
             input_ = 0
         else:
@@ -433,7 +446,7 @@ def build_release(data):
     print '[1] Do nothing\n\n'
 
     # Read user response.
-    sel = raw_input( 'Selection [0] : ' )
+    sel = try_to_prompt( 'Selection [0] : ' )
 
     # Save if requested.
     if(len(sel) == 0 or sel == 0):
@@ -491,7 +504,7 @@ initialize()
 
 while(search_string != "-99"): 
     # Do we need the user to specify a URL?
-    if(uri == 'set'): uri = raw_input("Enter URL: ")
+    if(uri == 'set'): uri = try_to_prompt("Enter URL: ")
 
     # Make sure that the search type is set to something
     if(search_type == None): search_type = 'all'
@@ -499,7 +512,7 @@ while(search_string != "-99"):
     # If we an internal search is unnecessary, and there is no URL given.
     if(i_search == None and uri == None):
         # Read in a search query.
-        search_string = raw_input("Search: ")
+        search_string = try_to_prompt("Search: ")
 
         # Split the query into tokens
         explode = str.split(search_string, ' ')
@@ -718,3 +731,4 @@ while(search_string != "-99"):
         doc_type = None
         i_search = None
         uri = Nonertype = x.attributes['type'].value
+
