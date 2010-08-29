@@ -239,6 +239,11 @@ def get_release_uri(node):
 def get_snippet(node, tag):
     content = ['temporary']
 
+    attr = 'name'
+    if tag == 'catno':
+        tag = 'label'
+        attr = 'catno'
+
     reflist = node.getElementsByTagName(tag)
     
     if reflist is None: return None
@@ -247,7 +252,7 @@ def get_snippet(node, tag):
         if(tag == 'label' or tag == 'format'): 
             # Info is in attributes.
             for x in reflist:
-                title = x.attributes['name'].value
+                title = x.attributes[attr].value
                 #print tag + " Name: " + title
                 content.append(title)
         elif(tag == 'artist'):
@@ -336,6 +341,7 @@ def build_release(data):
     title = get_snippet(node, 'title')
     artists = get_snippet(node, 'artist')
     labels = get_snippet(node, 'label')
+    catnos = get_snippet(node, 'catno')
     formats = get_snippet(node, 'format')
     genres = get_snippet(node, 'genre')
     styles = get_snippet(node, 'style')
@@ -432,6 +438,13 @@ def build_release(data):
                     elif(a == 's'):
                         innercounter = len(styles)
                         for x in styles:
+                            output += x
+                            innercounter -=1
+                            if innercounter > 0:
+                                output += ', '
+                    elif(a == 'n'):
+                        innercounter = len(catnos)
+                        for x in catnos:
                             output += x
                             innercounter -=1
                             if innercounter > 0:
