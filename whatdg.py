@@ -60,6 +60,7 @@ def initialize():
             "// Album Title...  %t",
             "// Artist Name...  %a",
             "// Labels...       %x",
+            "// Catnos...       %n",
             "// Format(s)...    %f",
             "// Country...      %c",
             "// Released...     %r",
