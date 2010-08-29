@@ -428,7 +428,14 @@ def build_release(data):
                             output += x
                             innercounter -= 1
                             if(innercounter > 0):
-                                output += ' , '
+                                output += ', '
+                    elif(a == 's'):
+                        innercounter = len(styles)
+                        for x in styles:
+                            output += x
+                            innercounter -=1
+                            if innercounter > 0:
+                                output += ', '
                     variable = 0
                 # If the last character read was not '%'
                 else: 
@@ -509,7 +516,7 @@ while(search_string != "-99"):
     # Make sure that the search type is set to something
     if(search_type == None): search_type = 'all'
 
-    # If we an internal search is unnecessary, and there is no URL given.
+    # If an internal search is unnecessary, and there is no URL given.
     if(i_search == None and uri == None):
         # Read in a search query.
         search_string = try_to_prompt("Search: ")
