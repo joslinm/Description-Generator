@@ -1,12 +1,14 @@
 //The list of tags is as so :
-//Album Title...		%t
-//Artist Name...		%a
-//Labels...			%x
-//Format(s)...			%f
-//Country...			%c
-//Released...			%r
-//Track Listing...		%l
-//Genre(s)...			%g
+//Album Title...    %t
+//Artist Name...    %a
+//Labels...         %x
+//Catnos...         %n
+//Format(s)...      %f
+//Country...        %c
+//Released...       %r
+//Track Listing...  %l
+//Genre(s)...       %g
+// Style(s)...      %s
 
 The switches you can use are as follows:
 -s...		summary of each release
