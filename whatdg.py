@@ -149,7 +149,7 @@ def search_menu(reflist, iterator):
 def get_artist_uri(node): 
     uri = node.firstChild.data 
     new_uri = str.split(str(uri), '?')[0] #Get the url until ? is hit
-    (this avoids complications) 
+    #(this avoids complications) 
     uri =  new_uri + '?f=xml&api_key=' + api
     return uri 
 
