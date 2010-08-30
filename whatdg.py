@@ -512,7 +512,7 @@ if(len(sys.argv) > 1):
             search_type = 'release'
 
         # Check for label search option.
-        elif(x == '-label'):
+        e 67 24538   67 16633    0     0  30443      0 --:--:-- --:--:-- --:--:-- 41170lif(x == '-label'):
             search_type = 'label'
 
         # Check for artist search option.
@@ -626,7 +626,8 @@ while(search_string != "-99"):
         if(exact):
             reflist = xmldoc.getElementsByTagName('exactresults')
             if(reflist < 1): 
-                reflist = xmldoc.getElementsByTagName('result')
+                reflist = xmldoc.getElementsByTagN100 24538  100 24538    0     0  44236      0 --:--:-- --:--:-- --:--:-- 59558
+ame('result')
             node = reflist[0]
             node.toxml()
             # This is the parent node to look in (result)
@@ -752,4 +753,3 @@ while(search_string != "-99"):
         doc_type = None
         i_search = None
         uri = Nonertype = x.attributes['type'].value
-
