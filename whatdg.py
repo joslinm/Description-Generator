@@ -723,7 +723,7 @@ while(search_string != "-99"):
         reflist = xmldoc.getElementsByTagName('release')
 
         # Have the user select a title.
-        selection = search_menu(reflist, 'title')
+        selected = search_menu(reflist, 'title')
 
         # Get the release ID number of the chosen release.
         id_ = reflist[int(selected)].attributes['id'].value
