@@ -468,9 +468,10 @@ def build_release(data):
 
     # Read user response.
     sel = try_to_prompt( 'Selection [0] : ' )
-
+    print 'Value of sel: ' + sel
+    
     # Save if requested.
-    if(len(sel) == 0 or sel == 0):
+    if(len(sel) == 0 or sel == '0'):
         f = open(title[0] + '.txt', 'w')
         f.write(output.encode('latin-1'))
         f.flush()
