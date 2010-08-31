@@ -199,7 +199,7 @@ def search_menu(reflist, iterator):
                 ''.join((
                     '\n\nOption [', str(default),'] or Filter: ')));
         if(len(input_) == 0):
-            input_ = 0
+            input_ = default
         else:
             try:
                 input_ = int(input_)
