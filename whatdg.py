@@ -237,19 +237,6 @@ def get_release_uri(node):
     url = 'http://www.discogs.com/release/' + _id
     return http_query(url, args)
 
-def get_release_uri_text(node):
-    uri = node.firstChild.data
-    #print "uri : " + uri
-    splut = str.split(str(uri), '/')
-    counter = 2
-    while(splut[counter] != 'release'):
-        counter += 1
-        _id = splut[counter + 1]
-    
-    args = {'f':'xml', 'api_key':api}
-    url = 'http://www.discogs.com/release/' + _id
-    return url;
-
 def get_snippet(node, tag):
     content = ['temporary']
 
@@ -345,8 +332,20 @@ def get_track_list(node):
     return content
 
 def shave_uri(uri):
-    splut = str.split(uri, '?')
+    splut = str.split(str(uri), '?')
     return splut[0];
+
+def create_label_uri(label):
+    # Put + between any words if longer than 1 
+    if(len(label) > 1): 
+        sep = '+'
+        splut = str(label).split()
+        label = sep.join(splut)
+    
+    # Affix to the assumed discogs label uri
+    uri = 'http://www.discogs.com/label/' + label
+    
+    return uri
     
 def build_release(data, uri):
     '''
@@ -403,6 +402,14 @@ def build_release(data, uri):
                         innercounter = len(labels)
                         for x in labels: 
                             output += x
+                            innercounter -= 1
+                            if(innercounter > 0):
+                                output += ' , '
+                     # Print labels in url format
+                    elif(a == 'X'):
+                        innercounter = len(labels)
+                        for x in labels: 
+                            output += '[url=' + create_label_uri(x) + ']' + x + '[/url]'
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
