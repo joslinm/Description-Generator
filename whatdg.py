@@ -237,6 +237,19 @@ def get_release_uri(node):
     url = 'http://www.discogs.com/release/' + _id
     return http_query(url, args)
 
+def get_release_uri_text(node):
+    uri = node.firstChild.data
+    #print "uri : " + uri
+    splut = str.split(str(uri), '/')
+    counter = 2
+    while(splut[counter] != 'release'):
+        counter += 1
+        _id = splut[counter + 1]
+    
+    args = {'f':'xml', 'api_key':api}
+    url = 'http://www.discogs.com/release/' + _id
+    return url;
+
 def get_snippet(node, tag):
     content = ['temporary']
 
@@ -331,7 +344,11 @@ def get_track_list(node):
     # Return the tracklist.
     return content
 
-def build_release(data):
+def shave_uri(uri):
+    splut = str.split(uri, '?')
+    return splut[0];
+    
+def build_release(data, uri):
     '''
     Creates a string description of a release described by 'data'. Uses
     the template found in settings.txt
@@ -348,6 +365,7 @@ def build_release(data):
     styles = get_snippet(node, 'style')
     country = get_snippet(node, 'country')
     released = get_snippet(node, 'released')
+    released_uri = shave_uri(uri);
     tracks = get_track_list(node)
     
     f = open("settings.txt", 'r')
@@ -436,6 +454,7 @@ def build_release(data):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ', '
+                    # Print style(s).
                     elif(a == 's'):
                         innercounter = len(styles)
                         for x in styles:
@@ -443,6 +462,11 @@ def build_release(data):
                             innercounter -=1
                             if innercounter > 0:
                                 output += ', '
+                    # Print release uri
+                    elif(a == 'u'):
+                        output += released_uri
+
+                    # Print catalog number
                     elif(a == 'n'):
                         innercounter = len(catnos)
                         for x in catnos:
@@ -468,7 +492,6 @@ def build_release(data):
 
     # Read user response.
     sel = try_to_prompt( 'Selection [0] : ' )
-    print 'Value of sel: ' + sel
     
     # Save if requested.
     if(len(sel) == 0 or sel == '0'):
@@ -555,9 +578,8 @@ while(search_string != "-99"):
         
     # An internal search is required.
     if(i_search is not None):
-        print 'inside..'
+        #print 'inside..'
         search_string = i_search
-        
         print search_type
 
         # If we are searching artists.
@@ -737,9 +759,9 @@ while(search_string != "-99"):
     elif(doc_type == 'release'):
         # Get the release node.
         node = xmldoc.getElementsByTagName('release')
-
+        
         # Build and print the release description.
-        build_release(node)
+        build_release(node, uri)
 
         # Set up for a new search.
         i_search = None
