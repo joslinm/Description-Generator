@@ -2,13 +2,15 @@
 //Album Title...    %t
 //Artist Name...    %a
 //Labels...         %x
+//Labels (links)... %X
 //Catnos...         %n
-//Format(s)...      %f
+//Formats...        %f
 //Country...        %c
 //Released...       %r
 //Track Listing...  %l
-//Genre(s)...       %g
-// Style(s)...      %s
+//Genres...         %g
+//Styles...         %s
+//Release URL...    %u
 
 The switches you can use are as follows:
 -s...		summary of each release
