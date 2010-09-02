@@ -161,6 +161,9 @@ def search_menu(reflist, iterator):
             # Reset the counter to the beginning of the matches.
             counter = 0
 
+            # Reset the filter for the next iteration.
+            filter_ = None
+
         # Set the default response.
         default = counter
 
