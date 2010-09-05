@@ -50,23 +50,25 @@ def initialize():
     if(os.path.exists('settings.txt')):
         f = open('settings.txt', 'r')
         api = f.readline()
-        api = str.split(api, ':')[1].strip()
+        api = api.split(':')[1].strip()
     else :
         default_settings = (
             'API KEY :<Please Insert Yours Here>',
             "// You can comment on new lines using '//'",
             "// You can not begin a comment in the middle of a line.",
             "// The list of tags is as so :",
-            "// Album Title...  %t",
-            "// Artist Name...  %a",
-            "// Labels...       %x",
-            "// Catnos...       %n",
-            "// Format(s)...    %f",
-            "// Country...      %c",
-            "// Released...     %r",
-            "// Track Listing...%l",
-            "// Genre(s)...     %g",
-            "// Style(s)...     %s",
+            "// Album Title...    %t",
+            "// Artist Name...    %a",
+            "// Labels...         %x",
+            "// Labels (links)... %X",
+            "// Catnos...         %n",
+            "// Formats...        %f",
+            "// Country...        %c",
+            "// Released...       %r",
+            "// Track Listing...  %l",
+            "// Genres...         %g",
+            "// Styles...         %s",
+            "// Release url...    %u"
             "// --*I'll get you started with a template*--", "",
             "[b]%t[/b]",
             "by %a",
@@ -159,6 +161,9 @@ def search_menu(reflist, iterator):
             # Reset the counter to the beginning of the matches.
             counter = 0
 
+            # Reset the filter for the next iteration.
+            filter_ = None
+
         # Set the default response.
         default = counter
 
@@ -213,13 +218,13 @@ def search_menu(reflist, iterator):
 def get_artist_uri(node): 
     uri = node.firstChild.data 
     #Get the url until ? is hit (this avoids complications) 
-    new_uri = str.split(str(uri), '?')[0] 
+    new_uri = uri.split('?')[0] 
     uri =  new_uri + '?f=xml&api_key=' + api
     return uri 
 
 def pull_release_id_from_user_url(uri):
     uri = uri.strip('+')
-    explode = str.split(uri, '/')
+    explode = uri.split('/')
     r = explode[len(explode) - 1] #return last element which is the ID
     #print r
     return r
@@ -227,7 +232,7 @@ def pull_release_id_from_user_url(uri):
 def get_release_uri(node):
     uri = node.firstChild.data
     #print "uri : " + uri
-    splut = str.split(str(uri), '/')
+    splut = uri.split('/')
     counter = 2
     while(splut[counter] != 'release'):
         counter += 1
@@ -371,7 +376,7 @@ def get_track_list(node, various):
     return content
 
 def shave_uri(uri):
-    splut = str.split(str(uri), '?')
+    splut = uri.split('?')
     return splut[0];
 
 def create_label_uri(label):
@@ -600,7 +605,7 @@ while(search_string != "-99"):
         search_string = try_to_prompt("Search: ")
 
         # Split the query into tokens
-        explode = str.split(search_string, ' ')
+        explode = search_string.split(' ')
 
         # Initialize a string for the http query string.
         implode = '' #We'll reconstruct our search query here
@@ -627,7 +632,7 @@ while(search_string != "-99"):
             print search_string
             # Suggest moving the word "The" to the end of artist names.
             if(search_string.lower().startswith('the')):
-                split = str.split(search_string, ' ')
+                split = search_string.split(' ')
                 innercounter = 0
                 new_s = ''
                 for x in split: 
@@ -649,7 +654,7 @@ while(search_string != "-99"):
 
         # We are searching all entries.
         else:
-            explode = str.split(search_string, ' ')
+            explode = search_string.split(' ')
             implode = concat.join(explode)
 
     # Break if we are unable to make a query.
