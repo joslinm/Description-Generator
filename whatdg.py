@@ -549,8 +549,7 @@ def build_release(data, uri):
     
     # Save if requested.
     if(len(sel) == 0 or sel == '0'):
-    	filename = title[0].replace('/', '_')
-    	filename = filename.replace('/', '_')
+    	filename = str(title[0]).translate(None, "/\?[]=+<>:;\",*|");
         f = open(filename + '.txt', 'w')
         f.write(output.encode('latin-1'))
         f.flush()
