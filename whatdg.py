@@ -295,8 +295,43 @@ def get_data_of_first_child_for_tag(node, tag):
     try: return reflist[0].firstChild.data
     except Exception: return ''
 
-def get_track_list(node):
-    content = [['position', 'title', 'duration']]
+def get_track_artists(node): 
+    '''
+    A very basic function that just takes everything it can find in track artist node & its children 
+    and puts it all together as an array & then returns an imploded string
+    '''
+    #Container 
+    artists = ['artist']
+    #Used in case a <join> is in the prior artist resulting in something like "Artist1 VS Artist2" rather than "Artist1 VS, artist2"
+    #See below
+    supress_comma = 1 
+    
+   #print type(reflist)
+    if(node is not None):
+        #For each Node in NodeList (Should only be 1)
+        for x in node:
+            #Foreach <Artist>(ChildNode) in <Artists>(MasterNode)
+            for y in x.childNodes: 
+                #If there is more than one artist for this track
+                if(not supress_comma):
+                    artists.append(',')
+                #Foreach childnode (<name><join>) in <Artist>, append all of it
+                for z in y.childNodes:
+                    artists.append(z.firstChild.data)
+                    if(z.localName == 'join'):
+                        supress_comma = 1
+                    else:
+                        supress_comma = 0
+                    
+            artists[0:1] = []
+            sep = ' '
+            return sep.join(artists)
+    else:
+        return ''
+    
+def get_track_list(node, various): 
+    #Initial declaration
+    content = [['artists', 'position', 'title', 'duration']]
 
     # Get all track xml elements.
     reflist = node.getElementsByTagName('track')
@@ -304,12 +339,16 @@ def get_track_list(node):
 
     # If there is at least one track in the reflist.
     if(len(reflist) > 0):
-
         # Iterate over tracks.
         for x in reflist: 
             x.toxml()
             
-            position = get_data_of_first_child_for_tag(x,'position')
+            if(various):
+                artists = get_track_artists(x.getElementsByTagName('artists'))
+            else:
+                artists = ''
+             
+            position = get_data_of_first_child_for_tag(x, 'position')
                 
             # Get the track title.
             title = get_data_of_first_child_for_tag(x, 'title')
@@ -323,7 +362,7 @@ def get_track_list(node):
                 continue
 
             # Append the track information to the tracklist.
-            content.append([[position, title, duration]])
+            content.append([[artists, position, title, duration]])
 
     # Remove initial declaration via a splice.
     content[0:1] = []
@@ -365,7 +404,9 @@ def build_release(data, uri):
     country = get_snippet(node, 'country')
     released = get_snippet(node, 'released')
     released_uri = shave_uri(uri);
-    tracks = get_track_list(node)
+    #If various artists, get the track list with artist names -- otherwise don't
+    #print artists
+    tracks = get_track_list(node, artists[0] == 'Various')
     
     f = open("settings.txt", 'r')
     
@@ -388,11 +429,11 @@ def build_release(data, uri):
                     # Print artists.
                     elif(a == 'a'):
                         innercounter = len(artists)
-                        for x in artists: 
-                            if(x == 'Various'):
-                                output += x + ' Artists including...\n'
-                                innercounter -= 1
-                            else:
+                        
+                        if(artists[0] == 'Various'):
+                            output += 'Various Artists'
+                        else:
+                            for x in artists: 
                                 output += x
                                 innercounter -= 1
                                 if(innercounter > 0):
@@ -444,12 +485,14 @@ def build_release(data, uri):
                     elif(a == 'l'):
                         innercounter = len(tracks)
                         for x in tracks:
-                            if(x[0][0] != ''):
-                                output += x[0][0] + '.) '
                             if(x[0][1] != ''):
-                                output += x[0][1]
+                                output += x[0][1] + '.) '
                             if(x[0][2] != ''):
-                                output += ' ['+x[0][2]+']\n'
+                                output += x[0][2]
+                            if(x[0][3] != ''):
+                                output += ' ['+x[0][3]+']'
+                            if(x[0][0] != ''):
+                                output += ' [' + x[0][0] + ']'
                             if(not output.endswith('\n')):
                                 output += '\n'
 
@@ -514,18 +557,8 @@ def build_release(data, uri):
 # Process any command line arguments
 if(len(sys.argv) > 1):
     for x in sys.argv:
-        # I don't really know what this paragraph is for.
-        if(x[0] != '-'):
-            if(search_type == 'release'):
-                try: i_search  = int(x)
-                except (TypeError, ValueError):
-                    print "**You cannot search releases."
-                    print "**Search normally or use the release ID#."
-                    search_type = 'all'
-            i_search = x
-
         # Check summary printing option.
-        elif(x == '-s'):
+        if(x == '-s'):
             summary = 1
 
         # Check exact query matching option.
@@ -609,7 +642,7 @@ while(search_string != "-99"):
             # Make sure the query is a release ID number (integer).
             try:
                 int(search_string)
-                implode = search_string
+                implode = search_string.strip('+') 
             except (TypeError, ValueError):
                 print "**You cannot search releases \n**Please use the release ID number in the future"
                 search_type = 'all'
@@ -624,7 +657,6 @@ while(search_string != "-99"):
     
     # Form a URI if we don't already have one.
     if(uri == None):
-
         discogs_base = 'http://www.discogs.com'
         args_base = {'f':'xml', 'api_key':api}
 
@@ -641,6 +673,7 @@ while(search_string != "-99"):
             url = '/'.join((discogs_base, 'label', implode))
             uri = http_query(url, args_base)
         elif(search_type == 'release'):
+            implode = implode.strip('+')
             url = '/'.join((discogs_base, 'release', implode))
             uri = http_query(url, args_base)
     
