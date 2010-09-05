@@ -310,10 +310,9 @@ def get_track_artists(node):
     #Used in case a <join> is in the prior artist resulting in something like "Artist1 VS Artist2" rather than "Artist1 VS, artist2"
     #See below
     supress_comma = 1 
-    
-   #print type(reflist)
+
     if(node is not None):
-        #For each Node in NodeList (Should only be 1)
+        #Foreach Node in NodeList (Should only be 1)
         for x in node:
             #Foreach <Artist>(ChildNode) in <Artists>(MasterNode)
             for y in x.childNodes: 
@@ -550,7 +549,9 @@ def build_release(data, uri):
     
     # Save if requested.
     if(len(sel) == 0 or sel == '0'):
-        f = open(title[0] + '.txt', 'w')
+    	filename = title[0].replace('/', '_')
+    	filename = filename.replace('/', '_')
+        f = open(filename + '.txt', 'w')
         f.write(output.encode('latin-1'))
         f.flush()
         f.close()
