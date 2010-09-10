@@ -170,13 +170,33 @@ def search_menu(reflist, iterator):
         # Print the next page.
         for x in reflist[counter:counter+9]:
             node_name = x.nodeName
+
+            s_msg = None
+            title = None
             if(node_name == 'result'):
                 rtype = x.attributes['type'].value
-                if(summary and rtype == 'release'):
-                    y = x
-                    y.toxml()
+                y = x
+                y.toxml()
+                try:
+                    title_nodes = y.getElementsByTagName('title')
+                    title = title_nodes[0].firstChild.data;
+                except:
+                    title = None
+                # Grab the uri from the result to show a preview.
+                try:
+                    uri_nodes = y.getElementsByTagName('uri')
+                    uri = uri_nodes[0].firstChild.data;
+                except:
+                    uri = None
+                try:
                     s_node = y.getElementsByTagName('summary')
                     s_msg = s_node[0].firstChild.data
+                    if rtype == 'release' or rtype == 'master':
+                        if not title is None and title.count(' - ') == 1:
+                            no_sep = title.replace(' - ',' ')
+                            s_msg = s_msg.replace(no_sep,'')
+                except:
+                    s_msg = None
             elif(node_name == 'artist'):
                 rtype = 'artist'
             elif(node_name == 'release'):
@@ -187,11 +207,19 @@ def search_menu(reflist, iterator):
 
             if(node.length > 0):
                 title = node[0].firstChild.data; #data
-                print '[' + str(counter) + '] ' + title + ' [' + rtype + '] '
-                if(node_name == 'result' and rtype == 'release' and summary):
-                    print '>->->Summary' + '-'*40
-                    print s_msg
-                    print '------------' + '-'*40 + '\n'
+                list_line = ''.join((
+                    '[',str(counter),'] ',
+                    title,' [', rtype, '] ',))
+                #if(summary and not s_msg is None):
+                #    list_line += (70 - len(list_line)) * "-"
+                print list_line
+                if(summary and not s_msg is None):
+                    print '\t' + s_msg
+                    #Experimentation with a short summary.
+                    #print ''.join((
+                    #    '    Summary:', s_msg[0:63],
+                    #    "..." if len(s_msg) > 64 else ""))
+                    print 70 * "="
                 counter += 1
         
         if(counter < reflist.length - 1):
