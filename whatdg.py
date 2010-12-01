@@ -65,7 +65,6 @@ def initialize():
             "// Labels              %x",
             "// Labels (links)      %X",
             "// Labels (What)       %y",
-            "// Labels (What-SSL)   %Y",
             "// Catnos              %n",
             "// Formats             %f",
             "// Country             %c",
@@ -73,10 +72,8 @@ def initialize():
             "// Track Listing       %l",
             "// Genres              %g",
             "// Genres (What)       %h",
-            "// Genres (What-SSL)   %H",
             "// Styles              %s",
             "// Styles (What)       %d",
-            "// Styles (What-SSL)   %D",
             "// Release url         %u",
             "// --*I'll get you started with a template*--", "",
             "[b]%t[/b]",
@@ -398,31 +395,25 @@ def create_label_uri(label):
     
     return uri
 
-def create_what_label_uri(label, ssl):
+def create_what_label_uri(label):
     # Put + between any words if longer than 1 
     if(len(label) > 1): 
         sep = '+'
         splut = str(label).split()
         label = sep.join(splut)
-    
-        if(ssl==True):
-           uri = 'https://ssl.what.cd/torrents.php?recordlabel=' + label
-        else:
-           uri = 'http://what.cd/torrents.php?recordlabel=' + label
+
+        uri = 'http://what.cd/torrents.php?recordlabel=' + label
 
     return uri
 
-def create_genre_uri(genre, ssl):
+def create_genre_uri(genre):
     # Put . between any words if longer than 1 
     if(len(genre) > 1): 
         sep = '.'
         splut = str(genre).split()
         genre = sep.join(splut)
     
-        if(ssl==True):
-           uri = 'https://ssl.what.cd/torrents.php?taglist=' + genre
-        else:
-           uri = 'http://what.cd/torrents.php?taglist=' + genre
+        uri = 'http://what.cd/torrents.php?taglist=' + genre
 
     return uri
 
@@ -495,19 +486,10 @@ def build_release(data, uri):
                             if(innercounter > 0):
                                 output += ' , '
                      # Print labels in url format on what.cd
-                    #non-ssl
                     elif(a == 'y'):
                         innercounter = len(labels)
                         for x in labels: 
-                            output += '[url=' + create_what_label_uri(x, False) + ']' + x + '[/url]'
-                            innercounter -= 1
-                            if(innercounter > 0):
-                                output += ' , '
-                    #ssl
-                    elif(a == 'Y'):
-                        innercounter = len(labels)
-                        for x in labels: 
-                            output += '[url=' + create_what_label_uri(x, True) + ']' + x + '[/url]'
+                            output += '[url=' + create_what_label_uri(x) + ']' + x + '[/url]'
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
@@ -562,38 +544,24 @@ def build_release(data, uri):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ', '
-                    # Print genres. What non-ssl
+                    # Print genres. What
                     elif(a == 'h'):
                         innercounter = len(genres)
                         for x in genres: 
-                            output += '[url=' + create_genre_uri(x, False) + ']' + x + '[/url]'
+                            output += '[url=' + create_genre_uri(x) + ']' + x + '[/url]'
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ', '
-                    # Print genres. What ssl
-                    elif(a == 'H'):
-                        innercounter = len(genres)
-                        for x in genres: 
-                            output += '[url=' + create_genre_uri(x, True) + ']' + x + '[/url]'
-                            innercounter -= 1
-                            if(innercounter > 0):
-                                output += ', '
-                    # Print style(s). What non-ssl
+
+                    # Print style(s). What
                     elif(a == 'd'):
                         innercounter = len(styles)
                         for x in styles:
-                            output += '[url=' + create_genre_uri(x, False) + ']' + x + '[/url]'
+                            output += '[url=' + create_genre_uri(x) + ']' + x + '[/url]'
                             innercounter -=1
                             if innercounter > 0:
                                 output += ', '
-                    # Print style(s). What ssl
-                    elif(a == 'D'):
-                        innercounter = len(styles)
-                        for x in styles:
-                            output += '[url=' + create_genre_uri(x, True) + ']' + x + '[/url]'
-                            innercounter -=1
-                            if innercounter > 0:
-                                output += ', '
+
                     # Print style(s).
                     elif(a == 's'):
                         innercounter = len(styles)
