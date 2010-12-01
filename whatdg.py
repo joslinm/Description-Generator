@@ -19,6 +19,9 @@ def try_to_prompt(prompt_text):
     except EOFError:
         print
         exit(0)
+    except KeyboardInterrupt:
+	    exit(0)
+	    
 
 def http_query(base, args):
     '''
@@ -57,18 +60,24 @@ def initialize():
             "// You can comment on new lines using '//'",
             "// You can not begin a comment in the middle of a line.",
             "// The list of tags is as so :",
-            "// Album Title...    %t",
-            "// Artist Name...    %a",
-            "// Labels...         %x",
-            "// Labels (links)... %X",
-            "// Catnos...         %n",
-            "// Formats...        %f",
-            "// Country...        %c",
-            "// Released...       %r",
-            "// Track Listing...  %l",
-            "// Genres...         %g",
-            "// Styles...         %s",
-            "// Release url...    %u"
+            "// Album Title         %t",
+            "// Artist Name         %a",
+            "// Labels              %x",
+            "// Labels (links)      %X",
+            "// Labels (What)       %y",
+            "// Labels (What-SSL)   %Y",
+            "// Catnos              %n",
+            "// Formats             %f",
+            "// Country             %c",
+            "// Released            %r",
+            "// Track Listing       %l",
+            "// Genres              %g",
+            "// Genres (What)       %h",
+            "// Genres (What-SSL)   %H",
+            "// Styles              %s",
+            "// Styles (What)       %d",
+            "// Styles (What-SSL)   %D",
+            "// Release url         %u",
             "// --*I'll get you started with a template*--", "",
             "[b]%t[/b]",
             "by %a",
@@ -199,7 +208,6 @@ def search_menu(reflist, iterator):
                 print '[-1] See More... (' + str(reflist.length - counter) + ' remaining)'
             elif(x.nodeName == 'result'):
                 print 'End Of Search Results'
-
         input_ = try_to_prompt(
                 ''.join((
                     '\n\nOption [', str(default),'] or Filter: ')));
@@ -389,7 +397,35 @@ def create_label_uri(label):
     uri = 'http://www.discogs.com/label/' + label
     
     return uri
+
+def create_what_label_uri(label, ssl):
+    # Put + between any words if longer than 1 
+    if(len(label) > 1): 
+        sep = '+'
+        splut = str(label).split()
+        label = sep.join(splut)
     
+        if(ssl==True):
+           uri = 'https://ssl.what.cd/torrents.php?recordlabel=' + label
+        else:
+           uri = 'http://what.cd/torrents.php?recordlabel=' + label
+
+    return uri
+
+def create_genre_uri(genre, ssl):
+    # Put . between any words if longer than 1 
+    if(len(genre) > 1): 
+        sep = '.'
+        splut = str(genre).split()
+        genre = sep.join(splut)
+    
+        if(ssl==True):
+           uri = 'https://ssl.what.cd/torrents.php?taglist=' + genre
+        else:
+           uri = 'http://what.cd/torrents.php?taglist=' + genre
+
+    return uri
+
 def build_release(data, uri):
     '''
     Creates a string description of a release described by 'data'. Uses
@@ -458,6 +494,24 @@ def build_release(data, uri):
                             innercounter -= 1
                             if(innercounter > 0):
                                 output += ' , '
+                     # Print labels in url format on what.cd
+                    #non-ssl
+                    elif(a == 'y'):
+                        innercounter = len(labels)
+                        for x in labels: 
+                            output += '[url=' + create_what_label_uri(x, False) + ']' + x + '[/url]'
+                            innercounter -= 1
+                            if(innercounter > 0):
+                                output += ' , '
+                    #ssl
+                    elif(a == 'Y'):
+                        innercounter = len(labels)
+                        for x in labels: 
+                            output += '[url=' + create_what_label_uri(x, True) + ']' + x + '[/url]'
+                            innercounter -= 1
+                            if(innercounter > 0):
+                                output += ' , '
+
                     # Print release formats.
                     elif(a == 'f'):
                         innercounter = len(formats)
@@ -507,6 +561,38 @@ def build_release(data, uri):
                             output += x
                             innercounter -= 1
                             if(innercounter > 0):
+                                output += ', '
+                    # Print genres. What non-ssl
+                    elif(a == 'h'):
+                        innercounter = len(genres)
+                        for x in genres: 
+                            output += '[url=' + create_genre_uri(x, False) + ']' + x + '[/url]'
+                            innercounter -= 1
+                            if(innercounter > 0):
+                                output += ', '
+                    # Print genres. What ssl
+                    elif(a == 'H'):
+                        innercounter = len(genres)
+                        for x in genres: 
+                            output += '[url=' + create_genre_uri(x, True) + ']' + x + '[/url]'
+                            innercounter -= 1
+                            if(innercounter > 0):
+                                output += ', '
+                    # Print style(s). What non-ssl
+                    elif(a == 'd'):
+                        innercounter = len(styles)
+                        for x in styles:
+                            output += '[url=' + create_genre_uri(x, False) + ']' + x + '[/url]'
+                            innercounter -=1
+                            if innercounter > 0:
+                                output += ', '
+                    # Print style(s). What ssl
+                    elif(a == 'D'):
+                        innercounter = len(styles)
+                        for x in styles:
+                            output += '[url=' + create_genre_uri(x, True) + ']' + x + '[/url]'
+                            innercounter -=1
+                            if innercounter > 0:
                                 output += ', '
                     # Print style(s).
                     elif(a == 's'):
