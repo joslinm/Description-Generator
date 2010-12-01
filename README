@@ -4,7 +4,6 @@
 // Labels              %x
 // Labels (links)      %X
 // Labels (What)       %y
-// Labels (What-SSL)   %Y
 // Catnos              %n
 // Formats             %f
 // Country             %c
@@ -12,10 +11,8 @@
 // Track Listing       %l
 // Genres              %g
 // Genres (What)       %h
-// Genres (What-SSL)   %H
 // Styles              %s
 // Styles (What)       %d
-// Styles (What-SSL)   %D
 // Release url         %u
 
 The switches you can use are as follows:
