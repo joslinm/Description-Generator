@@ -1,16 +1,22 @@
 //The list of tags is as so :
-//Album Title...    %t
-//Artist Name...    %a
-//Labels...         %x
-//Labels (links)... %X
-//Catnos...         %n
-//Formats...        %f
-//Country...        %c
-//Released...       %r
-//Track Listing...  %l
-//Genres...         %g
-//Styles...         %s
-//Release URL...    %u
+// Album Title         %t
+// Artist Name         %a
+// Labels              %x
+// Labels (links)      %X
+// Labels (What)       %y
+// Labels (What-SSL)   %Y
+// Catnos              %n
+// Formats             %f
+// Country             %c
+// Released            %r
+// Track Listing       %l
+// Genres              %g
+// Genres (What)       %h
+// Genres (What-SSL)   %H
+// Styles              %s
+// Styles (What)       %d
+// Styles (What-SSL)   %D
+// Release url         %u
 
 The switches you can use are as follows:
 -s...		summary of each release
