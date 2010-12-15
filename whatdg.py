@@ -96,7 +96,8 @@ def disc_request(url):
 
     # Form the http request.
     request = urllib2.Request(url)
-    request.add_header('Accept-Encoding', 'gzip')  
+    request.add_header('Accept-Encoding', 'gzip')
+    request.add_header('User-Agent', 'Mozilla/5.0')
 
     # Send the request.
     response = urllib2.urlopen(request)  
