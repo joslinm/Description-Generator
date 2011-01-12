@@ -20,8 +20,8 @@ def try_to_prompt(prompt_text):
         print
         exit(0)
     except KeyboardInterrupt:
-	    exit(0)
-	    
+            exit(0)
+            
 
 def http_query(base, args):
     '''
@@ -632,7 +632,7 @@ def build_release(data, uri):
     
     # Save if requested.
     if(len(sel) == 0 or sel == '0'):
-    	filename = str(title[0]).translate(None, "/\?[]=+<>:;\",*|");
+        filename = str(title[0]).translate(None, "/\?[]=+<>:;\",*|");
         f = open(filename + '.txt', 'w')
         f.write(output.encode('latin-1'))
         f.flush()
